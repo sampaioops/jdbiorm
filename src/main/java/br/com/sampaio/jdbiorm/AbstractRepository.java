@@ -20,7 +20,7 @@ import static java.lang.String.format;
 
 public abstract class AbstractRepository<T, I> {
 
-    private final Jdbi jdbi;
+    protected final Jdbi jdbi;
     private final Class<T> genericType;
 
     protected AbstractRepository(final Jdbi jdbi) {
