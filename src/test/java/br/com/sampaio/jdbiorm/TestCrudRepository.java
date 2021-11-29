@@ -3,6 +3,7 @@ package br.com.sampaio.jdbiorm;
 import br.com.sampaio.jdbiorm.model.Person;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -56,5 +57,25 @@ class TestCrudRepository extends AbstractTest {
         final var danielFound = repository.findByIdentifier(identifier);
 
         assertTrue(danielFound.isEmpty());
+    }
+
+    @Test
+    void shouldFindAllLikeNameWhenQueryPersonality() {
+        final var harryPotter = new Person(UUID.randomUUID(), "Harry Potter");
+        repository.save(harryPotter);
+
+        final var initName = harryPotter.getName().substring(0, 5);
+
+        final var allEntitiesWithInitName = repository.findAllLikeName(initName);
+
+        assertFalse(allEntitiesWithInitName.isEmpty());
+
+        final var harryPotterFound = allEntitiesWithInitName
+                .stream()
+                .filter(person -> person.getName().equals(harryPotter.getName()))
+                .findFirst()
+                .orElse(null);
+
+        assertNotNull(harryPotterFound);
     }
 }
