@@ -106,8 +106,8 @@ public abstract class AbstractRepository<T, I> {
     }
 
     private String getTableName() {
-        final Table annotation = genericType.getAnnotation(Table.class);
-        return annotation.name();
+        final Table table = genericType.getAnnotation(Table.class);
+        return table.name();
     }
 
     private String getIdentifierColumnName() {

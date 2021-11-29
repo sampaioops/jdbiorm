@@ -1,3 +1,5 @@
+package br.com.sampaio.jdbiorm;
+
 import br.com.sampaio.jdbiorm.AbstractTest;
 import br.com.sampaio.jdbiorm.model.Person;
 import org.junit.jupiter.api.Test;
