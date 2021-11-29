@@ -4,7 +4,6 @@ import org.jdbi.v3.core.Jdbi;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 
 import javax.sql.DataSource;
 
@@ -17,7 +16,6 @@ public class JdbiConfiguration {
     }
 
     @Bean(name = "jdbi")
-    @Primary
     public Jdbi jdbi() {
         return Jdbi.create(this.dataSource);
     }
