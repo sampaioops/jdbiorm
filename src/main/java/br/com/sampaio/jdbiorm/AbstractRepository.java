@@ -34,14 +34,8 @@ public abstract class AbstractRepository<T, I> {
         final var statement = format("SELECT * FROM %s", tableName);
 
         return jdbi.withHandle(handle -> handle.select(statement)
-                .map((rs, ctx) -> {
-                    try {
-                        return getEntity(rs);
-                    } catch (final InstantiationException | InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
-                        e.printStackTrace();
-                    }
-                    return null;
-                }).list()
+                .map((rs, ctx) -> getEntity(rs))
+                .list()
         );
     }
 
@@ -63,14 +57,8 @@ public abstract class AbstractRepository<T, I> {
         return jdbi.withHandle(handle -> handle.createUpdate(statement)
                 .bindMap(columnsAndValues)
                 .executeAndReturnGeneratedKeys()
-                .map((rs, ctx) -> {
-                    try {
-                        return getEntity(rs);
-                    } catch (final InstantiationException | InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
-                        e.printStackTrace();
-                    }
-                    return null;
-                }).one()
+                .map((rs, ctx) -> getEntity(rs))
+                .one()
         );
     }
 
@@ -82,14 +70,8 @@ public abstract class AbstractRepository<T, I> {
 
         return jdbi.withHandle(handle -> handle.select(statement)
                 .bind(identifierColumnName, identifier)
-                .map((rs, ctx) -> {
-                    try {
-                        return getEntity(rs);
-                    } catch (final InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-                        e.printStackTrace();
-                    }
-                    return null;
-                }).findOne()
+                .map((rs, ctx) -> getEntity(rs))
+                .findOne()
         );
     }
 
@@ -118,24 +100,30 @@ public abstract class AbstractRepository<T, I> {
                 .orElse("id");
     }
 
-    private T getEntity(final ResultSet rs) throws InstantiationException, IllegalAccessException, SQLException, NoSuchMethodException, InvocationTargetException {
-        final T entity = genericType.getDeclaredConstructor().newInstance();
+    private T getEntity(final ResultSet rs) {
+        try {
+            final T entity = genericType.getDeclaredConstructor().newInstance();
 
-        final Field[] fields = entity.getClass().getDeclaredFields();
+            final Field[] fields = entity.getClass().getDeclaredFields();
 
-        for (final Field field : fields) {
-            field.setAccessible(true);
+            for (final Field field : fields) {
+                field.setAccessible(true);
 
-            final Column annotation = field.getAnnotation(Column.class);
+                final Column annotation = field.getAnnotation(Column.class);
 
-            final String column = annotation.name();
+                final String column = annotation.name();
 
-            final var value = rs.getObject(column, field.getType());
+                final var value = rs.getObject(column, field.getType());
 
-            field.set(entity, value);
+                field.set(entity, value);
+            }
+
+            return entity;
+        } catch (final InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException | SQLException e) {
+            e.printStackTrace();
         }
 
-        return entity;
+        return null;
     }
 
     private HashMap<String, Object> getColumnsAndValues(final T entity) {
