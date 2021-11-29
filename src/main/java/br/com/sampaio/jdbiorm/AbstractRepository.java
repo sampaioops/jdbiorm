@@ -49,19 +49,19 @@ public abstract class AbstractRepository<T, I> {
         final String tableName = getTableName();
         final HashMap<String, Object> columnsAndValues = getColumnsAndValues(entity);
 
-        final var columnNames = columnsAndValues.keySet()
+        final var bindColumns = columnsAndValues.keySet()
                 .stream()
                 .collect(Collectors.joining(",", "", ""));
 
-        //TODO: Create statement values per field type
-        final var values = columnsAndValues.values()
+        final var bindValues = columnsAndValues.keySet()
                 .stream()
-                .map(o -> format("'%s'", o.toString()))
-                .collect(Collectors.joining(","));
+                .map(bindValue -> format(":%s", bindValue))
+                .collect(Collectors.joining(",", "", ""));
 
-        final String statement = format("INSERT INTO %s (%s) VALUES (%s)", tableName, columnNames, values);
+        final String statement = format("INSERT INTO %s (%s) VALUES (%s)", tableName, bindColumns, bindValues);
 
         return jdbi.withHandle(handle -> handle.createUpdate(statement)
+                .bindMap(columnsAndValues)
                 .executeAndReturnGeneratedKeys()
                 .map((rs, ctx) -> {
                     try {
