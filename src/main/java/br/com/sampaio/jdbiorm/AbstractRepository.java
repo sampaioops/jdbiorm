@@ -93,7 +93,7 @@ public abstract class AbstractRepository<T, I> {
     }
 
     protected String getIdentifierColumnName() {
-        return Arrays.stream(genericType.getFields())
+        return Arrays.stream(genericType.getDeclaredFields())
                 .filter(field -> field.getAnnotation(Id.class) != null)
                 .findFirst()
                 .map(field -> field.getAnnotation(Column.class).name())
