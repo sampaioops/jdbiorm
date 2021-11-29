@@ -87,12 +87,12 @@ public abstract class AbstractRepository<T, I> {
         );
     }
 
-    private String getTableName() {
+    protected String getTableName() {
         final Table table = genericType.getAnnotation(Table.class);
         return table.name();
     }
 
-    private String getIdentifierColumnName() {
+    protected String getIdentifierColumnName() {
         return Arrays.stream(genericType.getFields())
                 .filter(field -> field.getAnnotation(Id.class) != null)
                 .findFirst()
@@ -100,7 +100,7 @@ public abstract class AbstractRepository<T, I> {
                 .orElse("id");
     }
 
-    private T getEntity(final ResultSet rs) {
+    protected T getEntity(final ResultSet rs) {
         try {
             final T entity = genericType.getDeclaredConstructor().newInstance();
 
@@ -126,7 +126,7 @@ public abstract class AbstractRepository<T, I> {
         return null;
     }
 
-    private HashMap<String, Object> getColumnsAndValues(final T entity) {
+    protected HashMap<String, Object> getColumnsAndValues(final T entity) {
         final HashMap<String, Object> keyAndValues = new HashMap<>();
 
         final Field[] fields = entity.getClass().getDeclaredFields();
