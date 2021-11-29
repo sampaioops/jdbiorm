@@ -16,7 +16,7 @@ public class Person {
     @Column(name = "name")
     private String name;
 
-    //NOTE: This is necessary for generate a new instance with reflections
+    //NOTE: This is necessary for generate a new instance with reflections: AbstractRepository::getEntity
     public Person() {
     }
 
