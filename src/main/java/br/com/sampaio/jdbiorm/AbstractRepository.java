@@ -18,17 +18,18 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
-public abstract class AbstractRepository<T, I> {
+public abstract class AbstractRepository<E, I> implements CrudRepository<E, I>{
 
     protected final Jdbi jdbi;
-    private final Class<T> genericType;
+    private final Class<E> genericType;
 
     protected AbstractRepository(final Jdbi jdbi) {
-        this.genericType = (Class<T>) ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0];
+        this.genericType = (Class<E>) ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0];
         this.jdbi = jdbi;
     }
 
-    public List<T> findAll() {
+    @Override
+    public List<E> findAll() {
         final String tableName = getTableName();
 
         final var statement = format("SELECT * FROM %s", tableName);
@@ -39,7 +40,8 @@ public abstract class AbstractRepository<T, I> {
         );
     }
 
-    public T save(final T entity) {
+    @Override
+    public E save(final E entity) {
         final String tableName = getTableName();
         final HashMap<String, Object> columnsAndValues = getColumnsAndValues(entity);
 
@@ -62,7 +64,8 @@ public abstract class AbstractRepository<T, I> {
         );
     }
 
-    public Optional<T> findByIdentifier(final I identifier) {
+    @Override
+    public Optional<E> findByIdentifier(final I identifier) {
         final var tableName = getTableName();
         final var identifierColumnName = getIdentifierColumnName();
 
@@ -75,6 +78,7 @@ public abstract class AbstractRepository<T, I> {
         );
     }
 
+    @Override
     public void delete(final I identifier) {
         final var tableName = getTableName();
         final var identifierName = getIdentifierColumnName();
@@ -100,33 +104,24 @@ public abstract class AbstractRepository<T, I> {
                 .orElse("id");
     }
 
-    protected T getEntity(final ResultSet rs) {
+    protected E getEntity(final ResultSet rs) {
         try {
-            final T entity = genericType.getDeclaredConstructor().newInstance();
+            final E entity = genericType.getDeclaredConstructor().newInstance();
 
-            final Field[] fields = entity.getClass().getDeclaredFields();
+            final Field[] declaredFields = entity.getClass().getDeclaredFields();
 
-            for (final Field field : fields) {
-                field.setAccessible(true);
-
-                final Column annotation = field.getAnnotation(Column.class);
-
-                final String column = annotation.name();
-
-                final var value = rs.getObject(column, field.getType());
-
-                field.set(entity, value);
-            }
+            Arrays.stream(declaredFields)
+                    .forEach(field -> filledField(rs, field, entity));
 
             return entity;
-        } catch (final InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException | SQLException e) {
+        } catch (final InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
             e.printStackTrace();
         }
 
         return null;
     }
 
-    protected HashMap<String, Object> getColumnsAndValues(final T entity) {
+    protected HashMap<String, Object> getColumnsAndValues(final E entity) {
         final HashMap<String, Object> keyAndValues = new HashMap<>();
 
         final Field[] fields = entity.getClass().getDeclaredFields();
@@ -144,6 +139,23 @@ public abstract class AbstractRepository<T, I> {
         }
 
         return keyAndValues;
+    }
+
+    private void filledField(final ResultSet resultSet,
+                             final Field field,
+                             final E entityTarget) {
+        field.setAccessible(true);
+
+        final Column annotation = field.getAnnotation(Column.class);
+
+        final String column = annotation.name();
+
+        try {
+            final var value = resultSet.getObject(column, field.getType());
+            field.set(entityTarget, value);
+        } catch (final IllegalAccessException | SQLException e) {
+            e.printStackTrace();
+        }
     }
 
 }
