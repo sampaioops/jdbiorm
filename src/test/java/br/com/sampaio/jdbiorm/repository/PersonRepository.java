@@ -15,7 +15,7 @@ public class PersonRepository extends AbstractRepository<Person, UUID> {
         super(jdbi);
     }
 
-    public List<Person> findAllLikeName(final String name) {
+    public List<Person> findAllLikeByName(final String name) {
         final var tableName = getTableName();
         final var statement = format("SELECT * FROM %s WHERE name LIKE :name;", tableName);
 

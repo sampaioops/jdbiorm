@@ -65,7 +65,7 @@ class TestCrudRepository extends AbstractTest {
 
         final var initName = harryPotter.getName().substring(0, 5);
 
-        final var allEntitiesWithInitName = repository.findAllLikeName(initName);
+        final var allEntitiesWithInitName = repository.findAllLikeByName(initName);
 
         assertFalse(allEntitiesWithInitName.isEmpty());
 
