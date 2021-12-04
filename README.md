@@ -1,4 +1,4 @@
-# ORM with Jdbi
-A simple ORM with Jdbi
+# JOOQ with Jdbi
+A simple JOOQ with Jdbi
 
 # TODO!!
